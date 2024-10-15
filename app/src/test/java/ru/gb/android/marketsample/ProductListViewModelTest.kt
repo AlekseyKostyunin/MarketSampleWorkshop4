@@ -12,6 +12,10 @@ import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.argThat
 import org.mockito.kotlin.whenever
+import ru.gb.android.workshop4.data.favorites.FavoriteEntity
+import ru.gb.android.workshop4.domain.favorites.AddFavoriteUseCase
+import ru.gb.android.workshop4.domain.favorites.ConsumeFavoritesUseCase
+import ru.gb.android.workshop4.domain.favorites.RemoveFavoriteUseCase
 import ru.gb.android.workshop4.domain.product.ConsumeProductsUseCase
 import ru.gb.android.workshop4.domain.product.Product
 import ru.gb.android.workshop4.marketsample.R
@@ -28,6 +32,15 @@ class ProductListViewModelTest {
     lateinit var consumeProductsUseCase: ConsumeProductsUseCase
 
     @Mock
+    lateinit var consumeFavoritesUseCase: ConsumeFavoritesUseCase
+
+    @Mock
+    lateinit var addFavoritesUseCase: AddFavoriteUseCase
+
+    @Mock
+    lateinit var removeFavoritesUseCase: RemoveFavoriteUseCase
+
+    @Mock
     lateinit var productStateFactory: ProductStateFactory
 
     @get:Rule
@@ -38,6 +51,9 @@ class ProductListViewModelTest {
         sut = ProductListViewModel(
             consumeProductsUseCase = consumeProductsUseCase,
             productStateFactory = productStateFactory,
+            consumeFavoritesUseCase = consumeFavoritesUseCase,
+            addFavoriteUseCase = addFavoritesUseCase,
+            removeFavoriteUseCase = removeFavoritesUseCase
         )
     }
 
@@ -83,11 +99,21 @@ class ProductListViewModelTest {
         whenever(consumeProductsUseCase.invoke())
             .thenReturn(flowOf(listOf(Product(id = "1"), Product(id = "2"))))
 
-        val state1 = ProductState(id = "1")
-        val state2 = ProductState(id = "2")
+        val state1 = ProductState(id = "1", isFavorite = true)
+        val state2 = ProductState(id = "2", isFavorite = false)
 
-        whenever(productStateFactory.create(argThat { id == "1" })).thenReturn(state1)
-        whenever(productStateFactory.create(argThat { id == "2" })).thenReturn(state2)
+        whenever(
+            productStateFactory.create(
+                argThat { id == "1" },
+                listOf(FavoriteEntity(id = "1"))
+            )
+        ).thenReturn(state1)
+        whenever(
+            productStateFactory.create(
+                argThat { id == "2" },
+                listOf(FavoriteEntity(id = "1"))
+            )
+        ).thenReturn(state2)
 
         return listOf(state1, state2)
     }
